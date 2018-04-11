@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum type {vacia, casa, cadaver, sangre, agujero, barro, sangreBarro, arma}
+public enum type {vacia, casa, cadaver, sangre, agujero, barro, sangreBarro, arma, desconocido}
 
 public class DetectiveSearch : MonoBehaviour {
 
@@ -18,10 +18,14 @@ public class DetectiveSearch : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         instance = this;
-		marked = new bool[10, 10];
-		knowledge = new type[10, 10];
-		board = new type[10, 10];
-		seguridad = new bool[10, 10]; 
+		marked = new bool[5, 10];
+		knowledge = new type[5, 10];
+		for (int i = 0; i < 5; ++i) {
+			for (int j = 0; j < 10; ++j)
+				knowledge [i, j] = type.desconocido;
+		}
+		board = new type[5, 10];
+		seguridad = new bool[5, 10]; 
 
 		cadaverEncontrado = false;
 		armaencontrada = false;
@@ -340,13 +344,13 @@ public class DetectiveSearch : MonoBehaviour {
 				if(!seguridad[i,j])
 					continue;
 				// si lo es vemos si nos podemos arriesgar
-				if(knowledge[i - 1, j] == null)
+				if(knowledge[i - 1, j] == type.desconocido)
 					return new Vector2(i - 1, j);
-				if(knowledge[i + 1, j] == null)
+				if(knowledge[i + 1, j] == type.desconocido)
 					return new Vector2(i + 1, j);
-				if(knowledge[i, j - 1] == null)
+				if(knowledge[i, j - 1] == type.desconocido)
 					return new Vector2(i, j - 1);
-				if(knowledge[i, j + 1] == null)
+				if(knowledge[i, j + 1] == type.desconocido)
 					return new Vector2(i, j + 1);
 			}
 		}

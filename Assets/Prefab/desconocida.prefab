@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4610389358081244}
   - component: {fileID: 212544601393130786}
   m_Layer: 0
-  m_Name: desconocida_49
+  m_Name: desconocida
   m_TagString: desconocida
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

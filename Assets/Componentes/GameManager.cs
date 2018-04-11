@@ -126,7 +126,7 @@ public class GameManager : MonoBehaviour {
     }
     public void TapaTablero()
     {
-        DetectiveSearch.instance.buscaSolucion(********, (Vector2)posComisaria);
+		DetectiveSearch.instance.buscaSolucion(traduceTablero(tablero), new Vector2 ((int)Mathf.Abs(posComisaria.y) , (int) posComisaria.x));
         ButtonComenzar.SetActive(false);
         ButtonReiniciar.SetActive(false);
         int y = 0;
@@ -219,10 +219,10 @@ public class GameManager : MonoBehaviour {
         bool cuchilloColocado = false;
         do
         {
-            randomPosCuchillo = Random.Range(0, 8);
+            randomPosCuchillo = Random.Range(0, 4);
             switch(randomPosCuchillo)
             {
-                case 0:
+                /*case 0:
                     // Abajo
                     if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 2) % 5 != 0)
                     {
@@ -231,8 +231,8 @@ public class GameManager : MonoBehaviour {
                         Instantiate(Karambit, casilla.transform);
                         cuchilloColocado = true;
                     }
-                    break;
-                case 1:
+                    break;*/
+                case 0:
                     // Abajo Izquierda
                     if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 1) % 5 != 0 && ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 5) >= 0)
                     {
@@ -243,7 +243,7 @@ public class GameManager : MonoBehaviour {
                         cuchilloColocado = true;
                     }
                     break;
-                case 2:
+                case 1:
                     // Abajo Derecha
                     if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 1) % 5 != 0 && ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 5) < 50)
                     {
@@ -254,7 +254,7 @@ public class GameManager : MonoBehaviour {
                         cuchilloColocado = true;
                     }
                     break;
-                case 3:
+                /*case 3:
                     // Izquierda
                     if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 10) >= 0)
                     {
@@ -264,8 +264,8 @@ public class GameManager : MonoBehaviour {
                         Instantiate(Karambit, casilla.transform);
                         cuchilloColocado = true;
                     }
-                    break;
-                case 4:
+                    break;*/
+                /*case 4:
                     //Derecha
                     if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 10) < 50)
                     {
@@ -275,8 +275,8 @@ public class GameManager : MonoBehaviour {
                         Instantiate(Karambit, casilla.transform);
                         cuchilloColocado = true;
                     }
-                    break;
-                case 5:
+                    break;*/
+                /*case 5:
                     // Arriba
                     if (posCadaver.y + 2 <= 0)
                     {
@@ -285,8 +285,8 @@ public class GameManager : MonoBehaviour {
                         Instantiate(Karambit, casilla.transform);
                         cuchilloColocado = true;
                     }
-                    break;
-                case 6:
+                    break;*/
+                case 2:
                     // Arriba Izquierda
                     if (posCadaver.y + 1 <= 0 && ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 5) >= 0)
                     {
@@ -297,7 +297,7 @@ public class GameManager : MonoBehaviour {
                         cuchilloColocado = true;
                     }
                     break;
-                case 7:
+                case 3:
                     // Arriba Derecha
                     if (posCadaver.y + 1 <= 0 && ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 5) < 50)
                     {
@@ -561,4 +561,36 @@ public class GameManager : MonoBehaviour {
 		foreach (Vector2Int elem in list)
 			Debug.Log (elem);
 	}
+
+	type[,] traduceTablero(tipoCasilla [,] tablero){
+		type[,] traduccion = new type[5, 10];
+		for (int i = 0; i < 5; ++i) {
+			for (int j = 0; j < 10; ++j) {
+				switch (tablero [i, j]) 
+				{
+				case tipoCasilla.bloqueada:
+					traduccion [i, j] = type.agujero;
+					break;
+				case tipoCasilla.embarrada:
+					traduccion [i, j] = type.barro;
+					break;
+				case tipoCasilla.embarrada_sangre:
+					traduccion [i, j] = type.sangreBarro;
+					break;
+				case tipoCasilla.normal:
+					traduccion [i, j] = type.vacia;
+					break;
+				case tipoCasilla.normal_sangre:
+					traduccion [i, j] = type.sangre;
+					break;
+				}
+			}
+		}
+		traduccion [(int)Mathf.Abs(posComisaria.y), (int)posComisaria.x] = type.casa;
+		traduccion [(int)Mathf.Abs(posCadaver.y), (int)posCadaver.x] = type.cadaver;
+		traduccion [(int)Mathf.Abs(posKarambit.y), (int)posKarambit.x] = type.arma;
+
+		return traduccion;
+	}
 }
+	
