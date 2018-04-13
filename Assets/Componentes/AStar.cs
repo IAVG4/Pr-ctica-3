@@ -8,8 +8,8 @@ public class AStar : MonoBehaviour {
 	// Use this for initialization
 	// Variables para mantener las dimensiones del tablero
 	public static int tableroWidth = 10;
-	public static int tableroHeight = 10;
-	public static int tamañoTablero = 100;
+	public static int tableroHeight = 5;
+	public static int tamañoTablero = 50;
 
 	Node[,] tableroNode;
 	bool [,] marked;
@@ -22,7 +22,7 @@ public class AStar : MonoBehaviour {
 
 
     // Hay que inicializarlo
-    int [,] tablero = new int[10, 10];
+    int [,] tablero = new int[5, 10];
 
 
 	public class Node : FastPriorityQueueNode
@@ -53,11 +53,11 @@ public class AStar : MonoBehaviour {
 	void Start () {
 		
 		tableroWidth = 10;
-		tableroHeight = 10;
-		tamañoTablero = 100;
+		tableroHeight = 5;
+		tamañoTablero = 50;
 
 		tableroNode = new Node[tablero.GetLength (0), tablero.GetLength (1)];
-		marked = new bool [10, 10];
+		marked = new bool [5, 10];
 
 		open = new FastPriorityQueue<Node> (tablero.GetLength (0) * tablero.GetLength (1));
 	}
@@ -101,10 +101,9 @@ public class AStar : MonoBehaviour {
 		Vector2 S = node.pos + new Vector2(0, 1);
 		Vector2 E = node.pos + new Vector2(1, 0);
 		Vector2 W = node.pos + new Vector2(-1, 0);
-
 	bool myN = N.y >= 0 && !marked[(int)N.x, (int)N.y];
-	bool myS = S.y < tableroHeight && !marked[(int)S.x, (int)S.y];
-	bool myE = E.x < tableroWidth && !marked[(int)E.x, (int)E.y];
+	bool myS = S.y < tableroWidth && !marked[(int)S.x, (int)S.y];
+	bool myE = E.x < tableroHeight && !marked[(int)E.x, (int)E.y];
 	bool myW = W.x >= 0 && !marked[(int)W.x, (int)W.y];
 
 		int auxg = 0, auxf = 0;

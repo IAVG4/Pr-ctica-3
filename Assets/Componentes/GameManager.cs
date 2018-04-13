@@ -50,10 +50,14 @@ public class GameManager : MonoBehaviour {
     Vector2Int posKarambit;
 	Vector2Int posVigilante;
 
+	Queue<Vector2Int> caminoACadaver;
+	Queue<Vector2Int> caminoAComisaria;
+
 	// Use this for initialization
 	void Start () {
 		instance = this;
-
+		caminoACadaver = new Queue<Vector2Int> ();
+		caminoAComisaria = new Queue<Vector2Int> ();
 		CreaTablero ();
 		PonComisaria ();
 	}
@@ -88,47 +92,65 @@ public class GameManager : MonoBehaviour {
 		Instantiate(policeStation, this.transform);
     }
 
+	IEnumerator hacerElCamino() {
+
+		foreach (Vector2Int posicion in caminoACadaver) {
+		 //if (caminoACadaver.Count > 0) {
+		 	//Vector2Int posicion = caminoACadaver.Dequeue();
+			casilla = GameObject.Find("Casilla_" + (posicion.y + (posicion.x * tablero.GetLongLength(0))) + "(Clone)");
+			desconocida = GameObject.Find("desconocida_" + (posicion.y + (posicion.x * tablero.GetLongLength(0))) + "(Clone)");
+			DestroyObject(desconocida);
+			posVigilante = posicion;
+			vigilante = GameObject.Find ("vigilante(Clone)");
+			vigilante.transform.position = new Vector3 (posicion.x, -posicion.y, 0);
+			Karambit = GameObject.Find ("Karambit(Clone)");
+			/*if(vigilante.transform.position == Karambit.transform.position) {
+				DestroyObject (Karambit);
+			}*/
+
+			switch (tablero[posicion.y, posicion.x])
+			{
+			case tipoCasilla.normal:
+				casilla.GetComponent<SpriteRenderer>().sprite = normal_luz;
+				casilla.tag = "normal_luz";
+				tagCasillas[posicion.y, posicion.x] = "normal_luz";
+				tablero[posicion.y, posicion.x] = tipoCasilla.normal_luz;
+			break;
+
+			case tipoCasilla.embarrada:
+				casilla.GetComponent<SpriteRenderer>().sprite = embarrada_luz;
+				casilla.tag = "embarrada_luz";
+				tagCasillas[posicion.y, posicion.x] = "embarrada_luz";
+				tablero[posicion.y, posicion.x] = tipoCasilla.embarrada_luz;
+			break;
+
+			case tipoCasilla.normal_sangre:
+				casilla.GetComponent<SpriteRenderer>().sprite = normal_luz_sangre;
+				casilla.tag = "normal_luz_sangre";
+				tagCasillas[posicion.y, posicion.x] = "normal_luz_sangre";
+				tablero[posicion.y, posicion.x] = tipoCasilla.normal_luz_sangre;
+			break;
+
+			case tipoCasilla.embarrada_sangre:
+				casilla.GetComponent<SpriteRenderer>().sprite = embarrada_luz_sangre;
+				casilla.tag = "embarrada_luz_sangre";
+				tagCasillas[posicion.y, posicion.x] = "embarrada_luz_sangre";
+				tablero[posicion.y, posicion.x] = tipoCasilla.embarrada_luz_sangre;
+			break;
+			}
+			yield return new WaitForSeconds (0.5f);
+		}
+	}
+
     public void destapaCasilla(int x, int y)
     {
-        casilla = GameObject.Find("Casilla_" + (y + (x * tablero.GetLongLength(0))) + "(Clone)");
-        desconocida = GameObject.Find("desconocida_" + (y + (x * tablero.GetLongLength(0))) + "(Clone)");
-        DestroyObject(desconocida);
-        switch (tablero[y, x])
-        {
-            case tipoCasilla.normal:
-                casilla.GetComponent<SpriteRenderer>().sprite = normal_luz;
-                casilla.tag = "normal_luz";
-                tagCasillas[y, x] = "normal_luz";
-                tablero[y, x] = tipoCasilla.normal_luz;
-                break;
-
-            case tipoCasilla.embarrada:
-                casilla.GetComponent<SpriteRenderer>().sprite = embarrada_luz;
-                casilla.tag = "embarrada_luz";
-                tagCasillas[y, x] = "embarrada_luz";
-                tablero[y, x] = tipoCasilla.embarrada_luz;
-                break;
-
-            case tipoCasilla.normal_sangre:
-                casilla.GetComponent<SpriteRenderer>().sprite = normal_luz_sangre;
-                casilla.tag = "normal_luz_sangre";
-                tagCasillas[y, x] = "normal_luz_sangre";
-                tablero[y, x] = tipoCasilla.normal_luz_sangre;
-                break;
-
-            case tipoCasilla.embarrada_sangre:
-                casilla.GetComponent<SpriteRenderer>().sprite = embarrada_luz_sangre;
-                casilla.tag = "embarrada_luz_sangre";
-                tagCasillas[y, x] = "embarrada_luz_sangre";
-                tablero[y, x] = tipoCasilla.embarrada_luz_sangre;
-                break;
-        }
+		caminoACadaver.Enqueue (new Vector2Int(x, y));
     }
     public void TapaTablero()
     {
-		DetectiveSearch.instance.buscaSolucion(traduceTablero(tablero), new Vector2 ((int)Mathf.Abs(posComisaria.y) , (int) posComisaria.x));
         ButtonComenzar.SetActive(false);
         ButtonReiniciar.SetActive(false);
+		colocarAgujeros = false;
         int y = 0;
         for (int filas = 0; filas < tablero.GetLength(0); ++filas)
         {
@@ -175,6 +197,12 @@ public class GameManager : MonoBehaviour {
                 tablero[-posComisaria.y, posComisaria.x] = tipoCasilla.embarrada_luz_sangre;
                 break;
         }
+		//new Vector3(posComisaria.x, posComisaria.y, 0)
+		//Instantiate (vigilante, new Vector3(posComisaria.x, posComisaria.y, 0), this.transform);
+		Instantiate(vigilante, new Vector3(posComisaria.x, posComisaria.y, 0), transform.rotation, this.transform);
+		if(!this.GetComponent<DetectiveSearch>().buscaSolucion(traduceTablero(tablero), new Vector2 ((int)Mathf.Abs(posComisaria.y) , (int) posComisaria.x)))
+			volverACasa ();
+		StartCoroutine("hacerElCamino");
     }
 
 	public void OnButtonAgujeroClick() {
@@ -222,16 +250,6 @@ public class GameManager : MonoBehaviour {
             randomPosCuchillo = Random.Range(0, 4);
             switch(randomPosCuchillo)
             {
-                /*case 0:
-                    // Abajo
-                    if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 2) % 5 != 0)
-                    {
-                        casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 2) + "(Clone)");
-                        posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
-                        cuchilloColocado = true;
-                    }
-                    break;*/
                 case 0:
                     // Abajo Izquierda
                     if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 1) % 5 != 0 && ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 5) >= 0)
@@ -239,7 +257,8 @@ public class GameManager : MonoBehaviour {
                        
                         casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 1 - 5) + "(Clone)");
                         posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
+                        //Instantiate(Karambit, casilla.transform);
+						Instantiate(Karambit, new Vector3(posKarambit.x, posKarambit.y, 0), transform.rotation, this.transform);
                         cuchilloColocado = true;
                     }
                     break;
@@ -250,42 +269,10 @@ public class GameManager : MonoBehaviour {
 
                         casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 1 + 5) + "(Clone)");
                         posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
+					Instantiate(Karambit, new Vector3(posKarambit.x, posKarambit.y, 0), transform.rotation, this.transform);
                         cuchilloColocado = true;
                     }
                     break;
-                /*case 3:
-                    // Izquierda
-                    if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 10) >= 0)
-                    {
-
-                        casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0)))- 10) + "(Clone)");
-                        posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
-                        cuchilloColocado = true;
-                    }
-                    break;*/
-                /*case 4:
-                    //Derecha
-                    if (((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 10) < 50)
-                    {
-
-                        casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) + 10) + "(Clone)");
-                        posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
-                        cuchilloColocado = true;
-                    }
-                    break;*/
-                /*case 5:
-                    // Arriba
-                    if (posCadaver.y + 2 <= 0)
-                    {
-                        casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 2) + "(Clone)");
-                        posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
-                        cuchilloColocado = true;
-                    }
-                    break;*/
                 case 2:
                     // Arriba Izquierda
                     if (posCadaver.y + 1 <= 0 && ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 5) >= 0)
@@ -293,7 +280,7 @@ public class GameManager : MonoBehaviour {
 
                         casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 1 - 5) + "(Clone)");
                         posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
+					Instantiate(Karambit, new Vector3(posKarambit.x, posKarambit.y, 0), transform.rotation, this.transform);
                         cuchilloColocado = true;
                     }
                     break;
@@ -304,7 +291,7 @@ public class GameManager : MonoBehaviour {
 
                         casilla = GameObject.Find("Casilla_" + ((-posCadaver.y + (posCadaver.x * tablero.GetLongLength(0))) - 1 + 5) + "(Clone)");
                         posKarambit = new Vector2Int((int)casilla.transform.position.x, (int)casilla.transform.position.y);
-                        Instantiate(Karambit, casilla.transform);
+					Instantiate(Karambit, new Vector3(posKarambit.x, posKarambit.y, 0), transform.rotation, this.transform);
                         cuchilloColocado = true;
                     }
                     break;
@@ -322,6 +309,9 @@ public class GameManager : MonoBehaviour {
 
                 casilla = GameObject.Find("Casilla_" + (-posAgujero.y + (posAgujero.x * tablero.GetLongLength(0))) + "(Clone)");
                 casilla.GetComponent<SpriteRenderer>().sprite = bloqueada;
+				casilla.tag = "bloqueada";
+				tagCasillas[(int)-casilla.transform.position.y, (int)casilla.transform.position.x] = "bloqueada";
+				tablero[(int)-casilla.transform.position.y, (int)casilla.transform.position.x] = tipoCasilla.bloqueada;
 
                 // Abajo
                 if (((-posAgujero.y + (posAgujero.x * tablero.GetLongLength(0))) + 1) % 5 != 0)
@@ -586,11 +576,31 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 		}
-		traduccion [(int)Mathf.Abs(posComisaria.y), (int)posComisaria.x] = type.casa;
+		traduccion [(int)Mathf.Abs(posComisaria.y), (int)posComisaria.x] = type.vacia;
 		traduccion [(int)Mathf.Abs(posCadaver.y), (int)posCadaver.x] = type.cadaver;
 		traduccion [(int)Mathf.Abs(posKarambit.y), (int)posKarambit.x] = type.arma;
 
 		return traduccion;
+	}
+
+	// Rellena la lista caminoAComisaria con el camino de vuelta a la comisaria
+	void volverACasa(){
+		type[,] knowledge = this.GetComponent<DetectiveSearch> ().getKnowledge ();
+		int[,] traduccion = new int[knowledge.GetLength (0), knowledge.GetLength (1)];
+		for (int j = 0; j < knowledge.GetLength (1); ++j) {
+			for (int i = 0; i < knowledge.GetLength (0); ++i) {
+				if (knowledge [i, j] == type.agujero || knowledge [i, j] == type.desconocido)
+					traduccion [i, j] = 0;
+				else
+					traduccion [i, j] = 1;
+			}
+		}
+		List<Vector2> caminoACasa;
+		caminoACasa = new List<Vector2>();
+		caminoACasa = this.GetComponent<AStar> ().calculatePath (traduccion, new Vector2 ((int)-posKarambit.y, (int)posKarambit.x), new Vector2((int)-posComisaria.y, (int)posComisaria.x));
+		foreach(Vector2 coord in caminoACasa){
+			caminoACadaver.Enqueue (new Vector2Int((int)coord.y, (int)coord.x));
+		}
 	}
 }
 	
